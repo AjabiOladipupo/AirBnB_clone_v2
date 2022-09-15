@@ -1,44 +1,51 @@
 #!/usr/bin/python3
-"""Initialize a Flask application with five routes and using variables"""
-from markupsafe import escape
+"""
+Server routes
+"""
 from flask import Flask
-
 app = Flask(__name__)
 
 
-@app.route("/", strict_slashes=False)
-def hello_world():
-    """Display a standard message on get petition"""
-    return ('Hello HBNB!')
-
-
-@app.route("/hbnb", strict_slashes=False)
-def main():
-    """Display HBNB!"""
-    return ('HBNB')
-
-
-@app.route("/c/<string:text>", strict_slashes=False)
-def c_is_fun(text):
-    """Display C followed by text"""
-    return ('C {:s}'.format(escape(text)).replace('_', ' '))
-
-
-@app.route("/python", strict_slashes=False)
-@app.route("/python/<string:text>", strict_slashes=False)
-def python_is_cool(text='is cool'):
+@app.route('/', strict_slashes=False)
+def index():
     """
-    Display Python followed by text.
-    text by default is 'is cool'
+    Hello HBNB!
     """
-    return ('Python {:s}'.format(escape(text)).replace('_', ' '))
+    return 'Hello HBNB!'
 
 
-@app.route("/number/<int:n>", strict_slashes=False)
-def is_a_number(n):
-    """Display the int passed by the URL"""
-    return ('{} is a number'.format(escape(n)))
+@app.route('/hbnb', strict_slashes=False)
+def hbnb():
+    """
+    HBNB
+    """
+    return 'HBNB'
 
 
-if (__name__ == '__main__'):
-    app.run(host="0.0.0.0", port=5000)
+@app.route('/c/<text>', strict_slashes=False)
+def cisfun(text):
+    """
+    C Endpoint
+    """
+    return 'C ' + text.replace('_', ' ')
+
+
+@app.route('/python', strict_slashes=False)
+@app.route('/python/<text>', strict_slashes=False)
+def pythoniscool(text='is cool'):
+    """
+    Python Endpoint
+    """
+    return 'Python ' + text.replace('_', ' ')
+
+
+@app.route('/number/<int:n>', strict_slashes=False)
+def isnumber(n):
+    """
+    Integer Endpoint
+    """
+    return "{:d} is a number".format(n)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port='5000')

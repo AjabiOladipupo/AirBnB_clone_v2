@@ -1,74 +1,56 @@
 #!/usr/bin/python3
 """
-Do a complete deploy
+2. Deploy archive!
 """
-
-from fabric.api import local, put, run, env
+from fabric.api import *
 from datetime import datetime
-from os.path import exists
-
-env.hosts = ['54.242.106.85', '54.167.65.250']
+from os.path import exists, isdir
+env.hosts = ['54.224.105.134', '34.239.247.122']
 
 
 def do_pack():
     """
-    Create a .tgz file that contains the files of the Airbnb Web Static
+    compress files
     """
     try:
-        local("mkdir -p versions")
-        path = "versions/web_static_{:s}.tgz"
-        command = "tar -cvzf versions/web_static_{:s}.tgz web_static"
-        date = datetime.today().strftime('%Y%m%d%H%M%S')
-        res = local(command.format(date))
-        return (path.format(date))
-    except Exception:
-        return (None)
+        date = datetime.now().strftime("%Y%m%d%H%M%S")
+        if isdir("versions") is False:
+            local("mkdir versions")
+        file_name = "versions/web_static_{}.tgz".format(date)
+        local("tar -cvzf {} web_static".format(file_name))
+        return file_name
+    except Exception as e:
+        return e
 
 
 def do_deploy(archive_path):
     """
-    Deploy the web_static on remotes servers
+    deploy
     """
-    if (not exists(archive_path)):
+    if exists(archive_path) is False:
         return False
-
     try:
+        file_n = archive_path.split("/")[-1]
+        no_ext = file_n.split(".")[0]
+        path = "/data/web_static/releases/"
         put(archive_path, '/tmp/')
-
-        # This contain the extension ex: .tgz
-        only_file = archive_path.split('/')[-1]
-        # File without extension
-        only_name = only_file.split('.')[0]
-
-        full_path = '/data/web_static/releases/' + only_name + '/'
-
-        run('mkdir -p {:s}'.format(full_path))
-        run('tar -xzf /tmp/{:s} -C {:s}'.format(only_file, full_path))
-        run('rm /tmp/{:s}'.format(only_file))
-        run('mv {:s} {:s}'.format(full_path + 'web_static/*', full_path))
-        run('rm -rf {:s}'.format(full_path + 'web_static'))
-
-        sym_link = '/data/web_static/current'
-
-        run('rm -rf {:s}'.format(sym_link))
-        run('ln -s {:s} {:s}'.format(full_path, sym_link))
-
-        print('New version deployed!')
-
+        run('mkdir -p {}{}/'.format(path, no_ext))
+        run('tar -xzf /tmp/{} -C {}{}/'.format(file_n, path, no_ext))
+        run('rm /tmp/{}'.format(file_n))
+        run('mv {0}{1}/web_static/* {0}{1}/'.format(path, no_ext))
+        run('rm -rf {}{}/web_static'.format(path, no_ext))
+        run('rm -rf /data/web_static/current')
+        run('ln -s {}{}/ /data/web_static/current'.format(path, no_ext))
         return True
-
-    except Exception:
-        return False
+    except Exception as e:
+        return e
 
 
 def deploy():
     """
-    Call to do_path and do_deploy
+    pack and deploy
     """
-
-    path = do_pack()
-
-    if (path is None):
-        return (False)
-
-    return (do_deploy(path))
+    archive_path = do_pack()
+    if archive_path is None:
+        return False
+    return do_deploy(archive_path)
