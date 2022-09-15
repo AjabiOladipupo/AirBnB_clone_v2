@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-# 0. Prepare your web servers
-sudo apt update
+# Sets up your web servers for the deployment of web_static
+sudo apt -y update
+sudo apt -y upgrade
 sudo apt -y install nginx
-sudo mkdir -p /data/web_static/shared
-sudo mkdir -p /data/web_static/releases/test
-sudo echo -e "<html>\n<head>\n</head>\n<body>\nHolberton School\n</body>\n</html>" | sudo tee -a /data/web_static/releases/test/index.html
-sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
-sudo chown -R ubuntu:ubuntu /data/
-sudo chmod -R 755 /data/
-sudo sed -i '/\tserver_name _;/a \\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}' /etc/nginx/sites-available/default
-sudo service nginx restart
+sudo mkdir -p /data/web_static/releases/test /data/web_static/shared
+echo "New Content" | sudo tee /data/web_static/releases/test/index.html
+sudo ln -sf /data/web_static/releases/test /data/web_static/current
+sudo chown -hR ubuntu:ubuntu /data/
+
+find_str="^\t\}$"
+replace_str="\t\}\n\n\tlocation \/hbnb_static\/ \{\n\t\talias \/data\/web_static\/current\/;\n\t\}"
+
+sudo sed -i "0,/$find_str/s//$replace_str/" /etc/nginx/sites-available/default
+sudo service nginx start
